@@ -23,7 +23,7 @@ export class TrackingLogger extends ConsoleLogger {
   }
 
   error(message: string, options?: any) {
-    super.error(`[${options?.trackingId ?? this.getTrackingId()}]  ${message}`, options.stack);
+    super.error(`[${options?.trackingId ?? this.getTrackingId()}]  ${message}`);
   }
 
   warn(message: string, options?: any) {
