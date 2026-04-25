@@ -5,6 +5,7 @@ import { Logger } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { CorsOptions } from '@nestjs/common/interfaces/external/cors-options.interface';
 import { HapiAdapter, NestHapiApplication } from 'nestjs-hapi-adapter';
+import { TrackingLogger } from './common/logger/tracking.logger';
 
 async function bootstrap() {
   const lg = new Logger('Main');
@@ -30,6 +31,10 @@ async function bootstrap() {
       logger: ['log', 'error', 'warn'],
     }
   );
+
+  const trackingLogger = await app.resolve(TrackingLogger);
+  app.useLogger(trackingLogger);
+
   const { 
     PORT,
     APP_NAME,
@@ -77,7 +82,7 @@ async function bootstrap() {
     lg.log('⚠️ CORS no configurado - variable CORS_ORIGIN no encontrada');
   }
 
-  app.useGlobalFilters(new AllExceptionsFilter());
+  //app.useGlobalFilters(new AllExceptionsFilter());
   app.setGlobalPrefix("api/v1");
 
   // Health check endpoint (incluye métricas de conexiones SSE)

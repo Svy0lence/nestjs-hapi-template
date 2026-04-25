@@ -23,7 +23,6 @@ export class SubscriptionController {
   async registerToken(dto: RegisterTokenDto) {
     this.trackingLogger.log(`incio ${JSON.stringify(dto)}`)
     const response = await this.subscriptionService.registerToken(dto);
-    this.trackingLogger.log(`final ${JSON.stringify(dto)}`)
     return ApiResponse.success(response, 'Reponse exitoso')
   }
 

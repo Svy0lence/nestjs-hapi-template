@@ -4,14 +4,17 @@ import {
     ArgumentsHost,
     HttpException,
     HttpStatus,
-    Logger,
   } from '@nestjs/common';
-  import { ServerResponse } from 'http';
+import { ServerResponse } from 'http';
+import { TrackingLogger } from '../logger/tracking.logger';
   
 // intercepta todas las excepciones(errores) para darles un formato de respuesta estandar
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {
-  private readonly logger = new Logger(AllExceptionsFilter.name);
+
+  constructor(
+    private readonly trackingLogger: TrackingLogger
+  ) {}
 
   catch(exception: unknown, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
@@ -20,8 +23,8 @@ export class AllExceptionsFilter implements ExceptionFilter {
     const trackingId = (request as any)?.trackingId || 'no-track';
 
     //imprime log de error
-    this.logger.error(
-      `[${trackingId}] Exception capturada: ${
+    this.trackingLogger.error(
+      `Exception capturada: ${
         (() => {
           try {
             if (exception instanceof Error) {
@@ -35,20 +38,20 @@ export class AllExceptionsFilter implements ExceptionFilter {
             return String(exception);
           }
         })()
-      }`
+      }`, { trackingId }
     );
 
     // Si la respuesta ya tiene headers SSE, no intentar modificarla
     const contentType = response.getHeader?.('content-type');
     if (contentType && contentType.toString().includes('text/event-stream')) {
-      this.logger.warn(`[${trackingId}] Error en conexión SSE, no se puede enviar respuesta de error`);
+      this.trackingLogger.warn(`Error en conexión SSE, no se puede enviar respuesta de error`, { trackingId });
       // Solo logueamos, no modificamos la respuesta SSE
       return;
     }
 
     // Si los headers ya se enviaron, no podemos hacer nada más
     if (response.headersSent) {
-      this.logger.warn(`[${trackingId}] Headers ya enviados, no se puede enviar respuesta de error`);
+      this.trackingLogger.warn(`Headers ya enviados, no se puede enviar respuesta de error`, { trackingId });
       return;
     }
 
@@ -96,7 +99,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
       }
       response.end(JSON.stringify(errorResponse));
     } catch (error) {
-      this.logger.error(`[${trackingId}] Error al enviar respuesta de error:`, error);
+      this.trackingLogger.error(`Error al enviar respuesta de error: ${JSON.stringify(error)}`, { trackingId });
       // Intentar enviar algo básico
       try {
         response.end();

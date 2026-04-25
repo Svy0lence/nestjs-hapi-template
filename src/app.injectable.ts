@@ -3,7 +3,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TrackingLogger } from './common/logger/tracking.logger';
 import { AsyncLocalStorage } from 'async_hooks';
 import { TrackingInterceptor } from './common/interceptors/tracking-id.middleware';
-import { APP_INTERCEPTOR } from '@nestjs/core';
+import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
 import { environmentSchema } from './common/schemas/environment.schema';
 
 // Rutas y controladores para Push Notification API
@@ -13,6 +13,7 @@ import { SubscriptionController } from './controllers/subscription.controller';
 // Servicios e Integraciones
 import { SubscriptionService } from './services/subscription.service';
 import { TokenRepository } from './repositories/token.repository';
+import { AllExceptionsFilter } from './common/interceptors/all-exceptions.filter';
 
 @InjectDependencies({
   imports: [
@@ -37,7 +38,11 @@ import { TokenRepository } from './repositories/token.repository';
     {
       provide: APP_INTERCEPTOR,
       useClass: TrackingInterceptor,
-    }
+    },
+    {
+      provide: APP_FILTER,
+      useClass: AllExceptionsFilter, // ✅ BIEN: Nest se encarga de la instancia
+    },
   ],
   controllers: [SubscriptionController]
 })
