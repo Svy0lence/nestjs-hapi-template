@@ -23,7 +23,9 @@ export class TrackingLogger extends ConsoleLogger {
   }
 
   error(message: string, options?: any) {
-    super.error(`[${options?.trackingId ?? this.getTrackingId()}]  ${message}`);
+    const trackingId = options?.trackingId ?? this.getTrackingId();
+    super.error(`[${trackingId}] ${message}`, ...(options?.stack ? [options.stack] : []));
+
   }
 
   warn(message: string, options?: any) {
